@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crosshair Pro</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#007bff">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #121212;
+      color: #ffffff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    .crosshair {
+      width: 24px;
+      height: 24px;
+      border: 3px solid red;
+      border-radius: 50%;
+      margin: 30px auto;
+      box-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+    }
+    .btn-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      width: 100%;
+      max-width: 300px;
+    }
+    button {
+      padding: 14px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .btn-pip {
+      background-color: #007bff;
+      color: white;
+    }
+    .btn-pip:hover {
+      background-color: #0056b3;
+    }
+    .btn-install {
+      background-color: #28a745;
+      color: white;
+      display: none; /* Escondido até o navegador permitir a instalação */
+    }
+    .btn-install:hover {
+      background-color: #1e7e34;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Crosshair App</h1>
+  
+  <div class="crosshair" id="mira"></div>
+
+  <div class="btn-container">
+    <button class="btn-pip" onclick="solicitarPip()">Ativar Mira Flutuante (PiP)</button>
+    <button class="btn-install" id="btnInstalar">📲 Instalar Aplicativo</button>
+  </div>
+
+  <script>
+    // Lógica da janela flutuante
+    async function solicitarPip() {
+      if ('pictureInPictureEnabled' in document) {
+        alert("A iniciar modo flutuante...");
+      } else {
+        alert("O teu navegador ou dispositivo não suporta o modo flutuante nativo.");
+      }
+    }
+
+    // Registo do Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js')
+        .then(() => console.log('Service Worker Registado!'))
+        .catch((err) => console.error('Erro no Service Worker:', err));
+    }
+
+    // Capturar o evento de instalação do PWA
+    let deferredPrompt;
+    const btnInstalar = document.getElementById('btnInstalar');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      btnInstalar.style.display = 'block'; // Mostra o botão quando estiver pronto
+    });
+
+    btnInstalar.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const choiceResult = await deferredPrompt.userChoice;
+        if (choiceResult.outcome === 'accepted') {
+          console.log('Utilizador instalou a aplicação');
+          btnInstalar.style.display = 'none';
+        }
+        deferredPrompt = null;
+      }
+    });
+  </script>
+</body>
+</html>
